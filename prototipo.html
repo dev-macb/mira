@@ -1,0 +1,1312 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090f1e">
+  <title>Mira · Acesso ao console</title>
+  <link id="mira-icon" rel="icon" type="image/svg+xml">
+  <script>
+    try { if (localStorage.getItem('mira:tema') === 'light') document.documentElement.dataset.theme = 'light'; } catch {}
+  </script>
+  <style>
+  :root {
+    color-scheme: dark;
+    --bg: #090f1e;
+    --surface: #101b2e;
+    --surface-raised: #182941;
+    --border: #324560;
+    --border-hi: #637c9b;
+    --text: #ecf4ff;
+    --muted: #b0c1da;
+    --faint: #95a9c5;
+    --accent: #38b6ff;
+    --accent-hover: #85d5ff;
+    --primary: var(--accent);
+    --primary-hover: var(--accent-hover);
+    --primary-text: #041427;
+    --orange: #ff791f;
+    --warning: #ff944d;
+    --danger: #ff8097;
+    --backdrop: #040a17b8;
+    --compass-opacity: .46;
+    --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--surface));
+    --danger-soft: color-mix(in srgb, var(--danger) 12%, var(--surface));
+    --mono: 'Courier New', Courier, monospace;
+    --gutter: clamp(24px, 7vw, 112px);
+    --panel-gap: clamp(22px, 2.3vw, 32px);
+    --inset: clamp(14px, 1.8vw, 24px);
+    font: 13px/1.6 var(--mono);
+    background: var(--bg);
+    color: var(--text);
+    accent-color: var(--primary);
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #f1f6ff;
+    --surface: #ffffff;
+    --surface-raised: #e4eeff;
+    --border: #b7c7dc;
+    --border-hi: #647a96;
+    --text: #101c31;
+    --muted: #405575;
+    --faint: #506581;
+    --accent: #164bde;
+    --accent-hover: #0935ac;
+    --primary: #164eff;
+    --primary-hover: #093dce;
+    --primary-text: #ffffff;
+    --orange: #f55000;
+    --warning: #963600;
+    --danger: #ad193c;
+    --backdrop: #0c193a66;
+    --compass-opacity: .36;
+  }
+  * { box-sizing: border-box; }
+  body, h1, h2, p, pre, dl, dd { margin: 0; }
+  body { min-height: 100vh; }
+  [hidden], #toast:empty { display: none !important; }
+  ::selection { background: var(--primary); color: var(--primary-text); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  h1[tabindex="-1"]:focus { outline: none; }
+  button, input, select, textarea { font: inherit; }
+  button {
+    min-height: 36px; padding: 7px 14px; border: 1px solid var(--border-hi);
+    border-radius: 2px; background: var(--surface-raised); color: var(--text); cursor: pointer; font-size: 13px;
+  }
+  button:hover:enabled { border-color: var(--accent); background: var(--accent-soft); }
+  button:active:enabled { background: var(--surface-raised); }
+  button:disabled { opacity: .5; cursor: default; }
+  button.primary {
+    border-color: var(--primary); color: var(--primary-text); background: var(--primary); font-weight: 650;
+  }
+  button.primary:hover:enabled { background: var(--primary-hover); border-color: var(--primary-hover); }
+  button.danger { color: var(--danger); }
+  button.danger:hover:enabled { background: var(--danger-soft); border-color: var(--danger); }
+  .icon { padding: 2px 6px; min-width: 30px; font-family: var(--mono); font-size: 15px; }
+  input, select, textarea {
+    min-width: 0; min-height: 38px; width: 100%; padding: 8px 11px; border-radius: 1px;
+    border: 1px solid var(--border-hi); background: var(--bg); color: var(--text); font-size: 13px;
+  }
+  input::placeholder { color: var(--faint); }
+  input[aria-invalid="true"] { border-color: var(--danger); }
+  input[readonly] { color: var(--muted); }
+  label { display: block; margin-bottom: 6px; font-weight: bold; font-size: 12px; }
+  .text-button {
+    min-height: auto; padding: 2px 0; border: 0; background: none; color: var(--accent);
+    text-underline-offset: 3px; text-decoration: underline;
+  }
+  .text-button:hover:enabled { background: none; color: var(--accent-hover); }
+  .sr-only, .skip { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .skip:focus { width: auto; height: auto; clip-path: none; top: 5px; left: 5px; padding: 8px; z-index: 5; color: var(--primary-text); background: var(--primary); }
+  .wordmark { font: 600 25px/1 var(--mono); letter-spacing: -.075em; }
+
+  /* Campo de bússolas decorativo atrás do formulário. */
+  #screen-login {
+    min-height: 100vh; min-height: 100svh; display: grid; place-items: center; isolation: isolate;
+    position: relative; overflow: hidden; padding: 24px var(--gutter);
+  }
+  body { isolation: isolate; }
+  #compasses { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; opacity: var(--compass-opacity); }
+  .login-box {
+    width: min(100%, 370px); min-width: 0; position: relative;
+    padding: clamp(16px, 4vw, 24px); border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+  }
+  .login-mark { width: max-content; margin: 0 auto 16px; color: var(--orange); text-shadow: 0 0 3px color-mix(in srgb, var(--orange) 35%, transparent); -webkit-text-stroke: .2px currentColor; font: clamp(4px, 1.5vw, 6px)/1.25 "Segoe UI Symbol", monospace; white-space: pre; }
+  .login-body .field { margin-bottom: 18px; }
+  .login-body label { color: var(--text); font-weight: 600; text-shadow: 0 0 3px var(--bg); }
+  .login-body input { min-height: 38px; }
+  .password-wrap { position: relative; }
+  .password-wrap input { padding-right: 76px; }
+  .password-wrap button { position: absolute; right: 9px; top: 50%; transform: translateY(-50%); }
+  .login-submit { width: 100%; min-height: 38px; margin-top: 4px; }
+  .error { color: var(--danger); margin: 6px 0 12px; font-size: 13px; }
+  .error .text-button { color: inherit; }
+
+  /* Navegação, painéis e tabelas */
+  .topbar { position: sticky; top: 0; z-index: 2; background: var(--bg); border-bottom: 1px solid var(--border); }
+  .topbar-inner, .workspace { width: min(1056px, calc(100% - 2 * var(--gutter))); margin-inline: auto; }
+  .topbar-inner { display: flex; align-items: center; gap: 32px; min-height: 62px; }
+  .user-chip, .inline, .actions, .state, .detail-tag { display: flex; align-items: center; gap: 8px; }
+  .user-chip { margin-left: auto; font-size: 12px; color: var(--muted); }
+  .workspace { padding-block: clamp(26px, 3vw, 44px) 56px; }
+  .view-header, .detail-header {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: var(--panel-gap);
+  }
+  .view-title { font: 600 clamp(24px, 2.2vw, 30px)/1.22 var(--mono); letter-spacing: -.045em; }
+  .view-sub, .hint, .count { color: var(--muted); font-size: 12px; }
+  .view-title, .view-sub, .pc-tag, .modal-title, #toast { overflow-wrap: anywhere; }
+  .metric, .panel { background: var(--bg); }
+  .metrics-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); border: 1px solid var(--border); margin-bottom: var(--panel-gap); }
+  .metric { min-width: 0; padding: var(--inset); border-right: 1px solid var(--border); }
+  .metric:last-child { border-right: 0; }
+  .metric-label { color: var(--muted); font-size: 12px; }
+  .metric-value { color: var(--text); font: 600 clamp(24px, 2.7vw, 36px)/1.25 var(--mono); margin-block: 6px 8px; overflow-wrap: anywhere; }
+  .metric-sub { font-size: 12px; color: var(--muted); margin-top: 8px; overflow-wrap: anywhere; }
+  .bar { height: 6px; border: 1px solid var(--border); background: var(--bg); overflow: hidden; }
+  .bar > div { height: 100%; background: repeating-linear-gradient(90deg, var(--accent) 0 5px, transparent 5px 7px); }
+  .bar.orange > div { background: repeating-linear-gradient(90deg, var(--orange) 0 5px, transparent 5px 7px); }
+  .panel { min-width: 0; border: 1px solid var(--border); }
+  .panel-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;
+    padding: 14px var(--inset); border-bottom: 1px solid var(--border);
+  }
+  .panel-head h2, .section-heading { font-size: 16px; }
+  .toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 12px var(--inset); border-bottom: 1px solid var(--border); }
+  .toolbar label { margin: 0; }
+  .toolbar input, .toolbar select { width: auto; max-width: 100%; }
+  .toolbar input { width: 215px; }
+  .table-wrap { overflow: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
+  th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { background: var(--surface-raised); font-weight: normal; color: var(--muted); }
+  tbody tr:last-child td { border-bottom: 0; }
+  tr[data-project], tr[data-container] { cursor: pointer; }
+  tr[data-project]:hover, tr[data-container]:hover { background: var(--surface-raised); }
+  .numeric, .td-name, .logs-console, .steps { font-family: var(--mono); }
+  .numeric { text-align: right; }
+  .td-name { font-weight: bold; }
+  .td-dim { color: var(--muted); }
+  .actions { justify-content: flex-end; gap: 5px; }
+  .status, .pc-tag {
+    display: inline-block; padding: 2px 7px; font: 12px/1.35 var(--mono);
+    color: var(--muted);
+  }
+  .status { padding-inline: 0; }
+  .status::before { content: ""; display: inline-block; width: 5px; height: 5px; margin-right: 6px; vertical-align: middle; background: currentColor; }
+  .status.running { color: var(--accent); }
+  .status.unhealthy { color: var(--warning); }
+  .status.stopped, .status.exited { color: var(--danger); }
+  .empty { padding: 16px 12px; color: var(--muted); white-space: normal; }
+  .pc-tag { font: 12px/1.5 var(--mono); padding: 0; }
+  .project-table { min-width: 640px; white-space: normal; }
+  .project-table th, .project-table td { overflow-wrap: anywhere; }
+  .project-table td:first-child { width: 28%; }
+  table .text-button { font-weight: bold; text-align: left; }
+  .project-badge { display:inline-block; padding:2px 7px; font-size:12px; white-space:nowrap; color:var(--muted); background:color-mix(in srgb,currentColor 12%,transparent); border:1px solid color-mix(in srgb,currentColor 50%,transparent); }
+  .project-badge.production { color:var(--accent); }
+  .project-badge.development { color:var(--warning); }
+  .project-domain { display: block; color: var(--muted); font-size: 12px; }
+  .dot { display: inline-block; width: 6px; height: 6px; background: var(--accent); }
+  .paused .dot { background: var(--warning); }
+  .state { font-size: 12px; color: var(--muted); }
+  .breadcrumbs { margin-bottom: 20px; font-size: 12px; color: var(--muted); }
+  .breadcrumbs ol { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; list-style: none; padding: 0; margin: 0; }
+  .breadcrumbs li { min-width: 0; overflow-wrap: anywhere; }
+  .breadcrumbs li + li::before { content: "/" / ""; margin-right: 10px; color: var(--faint); }
+  .breadcrumbs a { color: inherit; text-decoration: none; text-underline-offset: 3px; }
+  .breadcrumbs a:hover { color: var(--accent-hover); text-decoration: underline; }
+  .inline, .detail-tag { flex-wrap: wrap; }
+  .detail-tag { margin-bottom: 8px; }
+  .section-heading { margin-bottom: 12px; }
+  .project-overview { display: grid; gap: var(--panel-gap); }
+  #resources .metric { padding-block: clamp(20px, 2.4vw, 30px); }
+  #container-resources { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  #container-resources .metric { border-bottom: 0; }
+  #container-resources .metric + .metric { border-left: 1px solid var(--border); }
+  #container-resources .metric { border-right: 0; }
+  .logs-console, .deploy-log { background: var(--surface); font-size: 13px; padding: var(--inset); overflow: auto; }
+  .logs-console { height: clamp(180px, 38vh, 360px); }
+  .log-line { display: flex; gap: 14px; padding: 4px 0; }
+  .log-time { flex: none; color: var(--muted); }
+  .log-level { flex: 0 0 4ch; color: var(--accent); }
+  .log-level.WARN { color: var(--warning); }
+  .log-level.ERR { color: var(--danger); }
+  .log-msg { min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .log-footer { border-top: 1px solid var(--border); padding: 6px 12px; font-size: 11px; color: var(--muted); }
+
+  /* Diálogos e mensagens */
+  dialog.modal {
+    margin: auto; padding: 0; width: min(480px, calc(100% - 28px)); max-height: calc(100dvh - 28px);
+    color: var(--text); background: var(--surface); border: 1px solid var(--border-hi);
+  }
+  dialog::backdrop { background: var(--backdrop); }
+  body:has(dialog[open]) { overflow: hidden; }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px var(--inset); border-bottom: 1px solid var(--border); }
+  .modal-title { font-size: 15px; }
+  .modal-body { padding: var(--inset); overflow-wrap: anywhere; }
+  .modal-body .field { min-width: 0; margin-bottom: 16px; }
+  .modal-body .field:last-child { margin-bottom: 0; }
+  .modal-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; padding: 14px var(--inset); border-top: 1px solid var(--border); }
+  .field-row { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+  .field-row .field:last-child { margin-bottom: 16px; }
+  .hint, #deploy-state { margin-top: 5px; }
+  #deploy-project { margin-bottom: 10px; }
+  .info-box { border-left: 2px solid var(--accent); background: var(--surface-raised); padding: 8px 10px; color: var(--muted); font-size: 12px; }
+  .steps { list-style: none; margin: 10px 0 0; max-height: 11em; }
+  .steps li::before { content: "› "; color: var(--accent); }
+  #deploy-state { color: var(--warning); }
+  #deploy-state[data-result="ok"] { color: var(--accent); }
+  #deploy-state[data-result="erro"] { color: var(--danger); }
+  #toast { position: fixed; bottom: 16px; right: 16px; max-width: min(360px, calc(100% - 32px)); z-index: 3; padding: 10px 14px; background: var(--surface-raised); color: var(--text); border: 1px solid var(--accent); }
+  #toast[data-result="erro"] { border-color: var(--danger); }
+
+  @media (max-width: 900px) {
+    .metrics-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .metric:nth-child(even) { border-right: 0; }
+    .metric:nth-child(-n+2) { border-bottom: 1px solid var(--border); }
+  }
+  @media (max-width: 620px) {
+    .topbar-inner { flex-wrap: wrap; gap: 8px; padding-top: 8px; }
+    .icon { min-width: 36px; min-height: 36px; }
+    .user-chip { gap: 6px; font-size: 11px; }
+    .field-row { grid-template-columns: 1fr; gap: 0; }
+    .log-line { gap: 6px; }
+    .log-time { font-size: 12px; }
+  }
+body {background:radial-gradient(color-mix(in srgb,var(--border) 65%,transparent) .5px,transparent .5px) 0 0 / 5px 5px}
+#app {display:flex;flex-direction:column;width:calc(100% - 32px);max-width:960px;margin:auto;min-height:100vh;border-inline:1px solid var(--border);background:color-mix(in srgb,var(--bg) 90%,transparent)}
+.topbar {position:static}
+.topbar-inner,.workspace {width:100%;margin:0}
+.topbar-inner {padding:18px 48px;min-height:0}
+.workspace {padding:40px 48px 48px;flex:1}
+.wordmark {font:bold 21px/1 var(--mono);letter-spacing:-1px}
+.user-chip {position:relative;min-width:0;border-left:1px dashed var(--border);padding-left:18px}
+.user-info {display:grid;min-width:0}
+.user-info strong {font-size:11px;color:var(--text);overflow-wrap:anywhere}
+.user-info small {font-size:10px;color:var(--muted)}
+.brand-home img {display:block;image-rendering:pixelated}
+.brand-home {min-width:0;overflow-wrap:anywhere;text-align:left;padding:0;border:0;background:transparent;color:var(--text)}
+.account-menu-toggle {width:32px;height:32px;display:grid;place-items:center;color:var(--text)}
+.account-menu-item[aria-current] {color:var(--accent)}
+#logs {margin-top:var(--panel-gap)}
+.account-menu {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.account-menu-toggle {
+    list-style: none;
+    cursor: pointer;
+}
+
+.account-menu-toggle::-webkit-details-marker {
+    display: none;
+}
+
+.account-menu-toggle:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.account-menu[open] > .account-menu-toggle {
+    color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.account-menu-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 20;
+    width: 220px;
+    max-width: calc(100vw - 32px);
+    padding: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--backdrop) 45%, transparent);
+}
+
+.account-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 36px;
+    padding: 8px 10px;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    text-align: left;
+    font-size: 12px;
+}
+
+.account-menu-item:hover:not(:disabled),
+.account-menu-item:focus-visible {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.account-menu-theme {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    margin: 6px 0;
+    padding: 12px 10px;
+    border: 0;
+    border-block: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    font-size: 12px;
+}
+
+.account-menu-theme > span {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.account-menu-theme:hover {
+    background: var(--accent-soft);
+}
+
+.account-menu-theme .theme-switch {
+    position: relative;
+    flex-shrink: 0;
+    width: 32px;
+    height: 18px;
+    border: 1px solid var(--border-hi);
+    border-radius: 999px;
+    background: var(--surface-raised);
+}
+
+.theme-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--muted);
+}
+
+.account-menu-theme[aria-checked='true'] .theme-switch {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.account-menu-theme[aria-checked='true'] .theme-switch::after {
+    transform: translateX(14px);
+    background: var(--primary-text);
+}
+
+.account-menu-logout {
+    color: var(--danger);
+}
+.account-menu-logout:hover:enabled, .account-menu-logout:focus-visible {
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+button,input,select,textarea {border-radius:0}
+textarea {resize:vertical}
+.project-heading {display:flex;align-items:center;gap:10px;min-width:0;max-width:100%}
+.project-heading h1 {min-width:0;overflow-wrap:anywhere}
+.project-heading .project-badge {flex:none}
+@media(max-width:550px){.project-heading .project-badge{max-width:45%;white-space:normal}}
+.host-info {flex-basis:100%;min-width:0;overflow-wrap:anywhere}
+.project-info {flex-basis:100%;min-width:0;overflow-wrap:anywhere}
+.project-info p {margin:0}
+#project-description {margin-top:6px;white-space:pre-wrap}
+.view-title {font-size:29px;letter-spacing:-1.5px}
+.view-title::after {content:'.';color:var(--orange)}
+.metric,#resources .metric {padding:15px 19px}
+.metric-value {font-size:30px}
+.panel-head,.toolbar {background:var(--surface)}
+.page-actions {display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.page-actions .actions {gap:8px}
+.page-actions button {display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.page-actions button svg {width:16px;height:16px;flex:none}
+.view-header .view-sub {margin-top:6px}
+.panel-head h2,.section-heading {font-size:14px;line-height:1.5}
+.toolbar input[type="search"] {width:min(100%,240px)}
+@media(max-width:550px){.toolbar input[type="search"],.toolbar select{width:100%}.page-actions{justify-content:flex-start}}
+.panel-head h2::before,.section-heading::before {content:'[ ';color:var(--faint)}
+.panel-head h2::after,.section-heading::after {content:' ]';color:var(--faint)}
+td {border-bottom-style:dashed}
+.pc-tag {font-family:inherit}
+.app-footer {display:flex;justify-content:space-between;border-top:1px dashed var(--border);padding:14px 48px;font-size:11px;color:var(--muted)}
+@media(max-width:900px){.workspace{padding:30px 32px}.topbar-inner,.app-footer{padding-inline:32px}}
+@media(max-width:650px){#app{width:calc(100% - 16px);border:0}.workspace{padding:28px 24px}.topbar-inner{padding:16px 24px;flex-wrap:wrap;gap:12px}.user-chip{border:0;padding:0}.user-info{display:none}.app-footer{padding-inline:24px}.metric,#resources .metric{padding:11px 10px}.view-title{font-size:26px}}
+@media(max-width:550px){
+  #container-resources {grid-template-columns:1fr}
+  #container-resources .metric {display:grid;grid-template-columns:1fr 1fr;align-items:baseline;gap:8px}
+  #container-resources .metric + .metric {border-left:0;border-top:1px solid var(--border)}
+  #container-resources .metric-value {margin-top:0;font-size:22px}
+}
+  .table-filters, .table-footer, .pager { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+  .table-filters { margin-left:auto; justify-content:flex-end; }
+  .table-filters input { width:180px; }
+  .table-filters select { width:auto; }
+  .table-footer { justify-content:space-between; padding:10px var(--inset); border-top:1px solid var(--border); color:var(--muted); font-size:12px; }
+  .pager button { min-width:32px; padding:3px 8px; }
+  @media(max-width:550px){.table-filters{width:100%}.table-filters input,.table-filters select{flex:1 1 135px;min-width:0}}
+  </style>
+</head>
+<body>
+  <canvas id="compasses" aria-hidden="true"></canvas>
+  <div id="login">
+    <div id="screen-login">
+      <main class="login-box" aria-labelledby="login-title">
+      <h1 class="sr-only" id="login-title">Mira</h1>
+      <pre class="login-mark" aria-hidden="true">⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣶⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣿⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⣿⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣹⣿⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣽⣿⣿⣄⣀⠀⠠⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣠⣾⣿⣿⣿⣿⣿⣿⣿⣿⣷⣶⣤⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣶⣷⣾⡟⠟⠉⠉⠉⠝⣿⡿⠋⠉⠉⠛⠿⢿⣿⣿⣶⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣾⣿⡿⠛⠀⠀⠀⠀⢀⣠⣼⣿⣿⣦⣄⠀⠀⠀⠀⠈⠻⣿⣿⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⡿⠋⠀⠀⠀⠀⠀⠀⠻⠻⣻⣿⣿⠏⠛⠟⠀⠀⠀⠀⠀⠀⠙⣿⣿⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⣿⣟⠃⠀⠀⠀⣀⡀⠀⠀⠀⠀⠀⣿⡿⠀⠀⠀⠀⠀⠀⡀⠀⠀⠀⠘⣿⣷⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⡇⠀⠀⠀⢰⡟⠀⠀⠀⠀⠀⠀⣿⠃⠀⠀⠀⠀⠀⠙⣿⡆⠀⠀⠀⢹⣿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⢀⢀⣀⣀⣀⣀⣠⣄⣤⣤⣾⣿⣿⣷⣤⣀⣤⣾⣯⣄⣀⡀⠀⠀⠀⠛⠀⠀⠀⠀⠀⢀⣀⣿⣿⣄⣀⣠⣾⣿⣤⣤⣤⣤⣀⣀⣀⣀⣀⣀⠀⡀⠀⠀
+⠀⠀⠀⠀⠀⠈⠉⠿⠿⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠿⠿⠿⠆⠀⠀⠀⠹⠿⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠿⠿⠏
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠘⣿⣿⡏⠁⠀⠹⣿⡇⠀⠀⠀⠀⠀⠀⣶⠀⠀⠀⠀⠀⠀⢈⣿⣿⠋⠀⠊⣿⣿⠋⠉⠉⠀⠁⠁⠀⠀⠀⠀⠛⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⡀⠀⠀⠹⠯⠄⠀⠀⠀⠀⢀⣿⡆⠀⠀⠀⠀⠀⠸⣿⠇⠀⠀⢀⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣿⣿⣷⡀⠀⠀⠀⠀⠀⠀⠀⠀⣸⣿⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⣿⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢻⣿⣖⡀⠀⠀⠀⠀⠰⠿⣿⣿⣿⣿⡿⠚⠃⠀⠀⠀⠀⠀⣴⣿⣿⠏⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠻⣿⣿⣦⣀⠀⠀⠀⠀⠀⢸⣿⡇⠀⠀⠀⠀⠀⢀⣤⣾⣿⣿⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠃⠙⠛⡿⠷⣦⣤⣀⣀⣼⣿⣷⣄⣀⣤⣴⣾⣿⣿⡿⠛⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠻⣿⣿⣿⣿⣿⣿⣿⣿⠿⠛⠛⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣿⣿⣿⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣧⢀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣻⣿⣏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢻⣿⣯⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀</pre>
+      <form id="login-form" class="login-body">
+        <div class="field"><label for="email">E-mail</label><input id="email" name="email" type="email" value="admin@mira.local" required autocomplete="username"></div>
+        <div class="field"><label for="password">Senha</label><div class="password-wrap"><input id="password" name="password" type="password" value="mira-local" required autocomplete="current-password"><button id="reveal" class="text-button" type="button" aria-controls="password" aria-label="Mostrar senha">Mostrar</button></div></div>
+        <div id="login-error" class="error" role="alert" hidden>E-mail ou senha incorretos. <button class="text-button" id="restore-login" type="button">Restaurar campos</button></div>
+        <button class="primary login-submit" type="submit">Entrar</button>
+      </form>
+      </main>
+    </div>
+  </div>
+  <div id="app" hidden>
+    <a href="#workspace" class="skip">Ir para o conteúdo</a>
+    <header class="topbar"><div class="topbar-inner">
+      <button class="brand-home" data-nav="dashboard" title="Ir para Projetos" aria-label="Mira, início"><img id="header-logo" width="32" height="32" alt=""></button>
+      <div class="user-chip">
+        <span class="user-info"><strong id="header-user-name"></strong><small>Administrador</small></span>
+        <details class="account-menu" id="account-menu">
+          <summary class="account-menu-toggle" id="account" aria-label="Menu da conta" aria-controls="account-panel" title="Menu da conta"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></summary>
+          <div class="account-menu-panel" id="account-panel">
+            <nav aria-label="Navegação principal">
+              <button class="account-menu-item" data-nav="projects"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h6l2 2h10v11H3z"/></svg>Projetos</button>
+              <button class="account-menu-item" data-nav="users"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg>Usuários</button>
+            </nav>
+            <button class="account-menu-theme" id="theme" role="switch" aria-checked="true"><span><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 14.3A9 9 0 0 1 9.7 3.5a9 9 0 1 0 10.8 10.8z"/></svg>Tema escuro</span><span class="theme-switch" aria-hidden="true"></span></button>
+            <button class="account-menu-item account-menu-logout" id="logout"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4H3v16h6M9 12h12m-5-5 5 5-5 5"/></svg>Sair da conta</button>
+          </div>
+        </details>
+      </div>
+    </div></header>
+    <main class="workspace" id="workspace" tabindex="-1">
+      <nav class="breadcrumbs" id="breadcrumbs" aria-label="Caminho de navegação"><ol id="breadcrumb-list"></ol></nav>
+      <section id="users" hidden>
+        <div class="view-header"><h1 class="view-title" tabindex="-1">Usuários</h1><div class="page-actions"><button id="new-user" class="primary"><span aria-hidden="true">＋</span>Novo usuário</button></div></div>
+        <section class="panel" aria-labelledby="users-heading">
+          <div class="panel-head"><h2 id="users-heading">Contas do console</h2><div class="table-filters"><label class="sr-only" for="user-search">Buscar por nome, e-mail ou perfil</label><input id="user-search" type="search" placeholder="Buscar usuário"></div></div>
+          <div class="table-wrap" role="region" aria-labelledby="users-heading" tabindex="0">
+            <table aria-labelledby="users-heading"><thead><tr><th scope="col">Nome</th><th scope="col">E-mail</th><th scope="col">Perfil</th><th scope="col">Situação</th><th scope="col">Último acesso</th><th scope="col" class="numeric">Ações</th></tr></thead><tbody id="user-rows"></tbody></table>
+          </div>
+        </section>
+      </section>
+      <section id="dashboard" hidden>
+        <div class="view-header"><h1 class="view-title" tabindex="-1">Projetos</h1><div class="page-actions"><button class="primary" id="new-project"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Novo projeto</button></div>
+          <div class="host-info view-sub"><p data-host-address></p><p>Tempo de atividade · 30 dias e 2 horas</p></div>
+        </div>
+        <dl class="metrics-grid" id="metrics" aria-label="Métricas da VPS"></dl>
+        <section class="panel" id="projects" aria-labelledby="projects-title">
+          <div class="panel-head">
+            <h2 id="projects-title" tabindex="-1">Projetos</h2><div class="table-filters">
+            <label class="sr-only" for="project-search">Buscar projeto por nome, cliente, domínio ou container</label>
+            <input type="search" id="project-search" placeholder="Buscar projeto">
+          </div></div>
+          <div class="table-wrap" role="region" aria-labelledby="projects-title" tabindex="0">
+            <table class="project-table" aria-labelledby="projects-title">
+              <thead><tr><th scope="col">Projeto</th><th scope="col" class="numeric">Containers ativos</th><th scope="col">Situação</th><th scope="col">Cliente</th><th scope="col" class="numeric">Ações</th></tr></thead>
+              <tbody id="project-rows"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+      <section id="detail" hidden>
+        <div class="view-header"><div class="project-heading"><h1 class="view-title" id="project-name" tabindex="-1"></h1><span id="project-status"></span></div><div class="page-actions"><button class="danger" id="archive"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h18v5H3zM5 9v11h14V9M10 13h4"/></svg>Arquivar projeto</button><button class="button primary" id="new-deploy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V3m-5 5 5-5 5 5M4 16v5h16v-5"/></svg><span id="deploy-label">Fazer deploy</span></button></div>
+          <div class="project-info"><p class="view-sub">Cliente · <span id="project-client"></span></p><p class="view-sub" id="project-domain-row">Domínio · <span id="project-domain"></span></p><p id="project-description"></p></div>
+        </div>
+        <section aria-labelledby="resources-title">
+          <h2 id="resources-title" class="section-heading">Recursos do projeto</h2>
+          <dl class="metrics-grid" id="resources"></dl>
+        </section>
+        <div class="project-overview" id="project-overview">
+          <section class="panel">
+            <div class="panel-head"><h2>Containers</h2><div class="table-filters" id="container-filters"><label class="sr-only" for="search">Buscar container por nome</label><input type="search" id="search" placeholder="Buscar container"><label class="sr-only" for="status-filter">Filtrar por estado</label><select id="status-filter"><option value="">Todos os estados</option><option>running</option><option>stopped</option><option>exited</option><option>unhealthy</option></select></div></div>
+            <div class="table-wrap" role="region" aria-label="Containers do projeto" tabindex="0">
+              <table aria-label="Containers do projeto"><thead><tr><th scope="col">Container</th><th scope="col">Estado</th><th scope="col" class="numeric">Memória / limite</th><th scope="col" class="numeric">Ações</th></tr></thead><tbody id="project-containers"></tbody></table>
+            </div>
+          </section>
+          <section class="panel"><div class="panel-head"><h2 class="title">Histórico de deploys</h2><div class="table-filters"><label class="sr-only" for="deploy-filter">Filtrar deploys por resultado</label><select id="deploy-filter"><option value="">Todos os resultados</option><option value="ok">Concluídos</option><option value="error">Falhos</option></select></div></div><div class="table-wrap" role="region" aria-label="Histórico de deploys" tabindex="0"><table aria-label="Deploys do projeto"><thead><tr><th scope="col">Versão</th><th scope="col">Container</th><th scope="col">Quando</th><th scope="col">Resultado</th></tr></thead><tbody id="history"></tbody></table></div></section>
+        </div>
+      </section>
+      <section id="container" hidden>
+        <div class="view-header">
+          <div><div class="detail-tag"><h1 class="view-title" id="container-name" tabindex="-1"></h1><span id="container-status"></span></div><p class="view-sub">Imagem <span id="container-image"></span></p></div>
+          <div class="page-actions" id="container-actions"></div>
+        </div>
+        <dl class="metrics-grid" id="container-resources" aria-label="Recursos do container"></dl>
+        <section id="logs" aria-labelledby="logs-heading">
+          <div class="panel">
+            <div class="panel-head"><h2 id="logs-heading">Logs do container</h2><div class="inline"><span class="state" id="stream-state"><i class="dot" aria-hidden="true"></i><span></span></span><button id="pause">Pausar</button></div></div>
+            <div class="toolbar"><label class="sr-only" for="log-query">Filtrar por mensagem ou nível</label><input id="log-query" type="search" placeholder="Buscar nos logs"></div>
+            <div class="logs-console" id="log-output" tabindex="0" role="region" aria-label="Saída do container"></div>
+            <div class="log-footer"><span id="log-count"></span></div>
+          </div>
+        </section>
+      </section>
+    </main>
+    <footer class="app-footer"><span>Mira // <span data-host-address></span></span><span>[ @dev-macb ]</span></footer>
+  </div>
+  <dialog class="modal" id="user-dialog" aria-labelledby="user-dialog-title">
+    <div class="modal-head"><h2 class="modal-title" id="user-dialog-title">Novo usuário</h2></div>
+    <form id="user-form">
+      <div class="modal-body">
+        <div class="field"><label for="user-name">Nome</label><input id="user-name" required maxlength="100" autocomplete="name"></div>
+        <div class="field"><label for="user-email">E-mail</label><input id="user-email" type="email" required maxlength="254" autocomplete="off"></div>
+        <div class="field"><label for="user-password" id="user-password-label">Senha</label><input id="user-password" type="password" autocomplete="new-password"></div>
+      </div>
+      <div class="modal-actions"><button type="button" data-close>Cancelar</button><button class="primary" id="save-user">Criar usuário</button></div>
+    </form>
+  </dialog>
+  <dialog class="modal" id="project-dialog" aria-labelledby="project-dialog-title">
+    <div class="modal-head"><h2 class="modal-title" id="project-dialog-title">Novo projeto</h2></div>
+    <form id="project-form"><div class="modal-body">
+      <div class="field"><label for="p-name">Nome do projeto</label><input id="p-name" name="name" required maxlength="80" placeholder="Meu projeto"></div>
+      <div class="field"><label for="p-slug">Slug</label><input id="p-slug" name="slug" required maxlength="63" pattern="[a-z0-9]+(-[a-z0-9]+)*" title="Use letras minúsculas, números e hífens entre palavras." placeholder="meu-projeto" aria-describedby="slug-hint"><p class="hint" id="slug-hint"></p></div>
+      <div class="field-row"><div class="field"><label for="p-client">Cliente</label><input id="p-client" name="client" placeholder="Pessoal" maxlength="80"></div><div class="field"><label for="p-status">Situação</label><select id="p-status" name="status"><option>Em desenvolvimento</option><option>Em produção</option><option>Arquivado</option></select></div></div>
+      <div class="field"><label for="p-domain">Domínio</label><input id="p-domain" name="domain" placeholder="app.exemplo.com" maxlength="253"></div>
+      <div class="field"><label for="p-description">Descrição</label><textarea id="p-description" name="description" rows="3" maxlength="2000"></textarea></div>
+    </div><div class="modal-actions"><button class="button" type="button" data-close>Cancelar</button><button class="button primary" id="save-project">Criar projeto</button></div></form>
+  </dialog>
+  <dialog class="modal" id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-body">
+    <div class="modal-head"><h2 class="modal-title" id="confirm-title"></h2></div>
+    <div class="modal-body"><p id="confirm-body"></p></div><div class="modal-actions"><button class="button" id="cancel-action" data-close>Cancelar</button><button class="button" id="confirm-action"></button></div>
+  </dialog>
+  <dialog class="modal" id="deploy-dialog" aria-labelledby="deploy-title">
+    <div class="modal-head"><h2 class="modal-title" id="deploy-title">Deploy manual</h2></div>
+    <form id="deploy-form"><div class="modal-body"><p class="view-sub" id="deploy-project"></p>
+      <div class="field"><label for="target">Container de destino</label><select id="target" required></select></div>
+      <div class="field"><label for="image">Imagem</label><input id="image" required maxlength="180" spellcheck="false"></div>
+      <div class="field"><label for="tag">Tag</label><input id="tag" required maxlength="128" spellcheck="false"></div>
+      <p class="info-box">O container será recriado com as portas e variáveis atuais.</p>
+    </div><div class="modal-actions"><button class="button" type="button" data-close>Cancelar</button><button class="button primary">Iniciar deploy</button></div></form>
+    <div id="deploy-progress" hidden><div class="modal-body"><p id="deploy-target"></p><p id="deploy-state" role="status"></p><ol class="steps deploy-log" id="deploy-steps"></ol></div><div class="modal-actions"><button class="button" data-close>Fechar</button></div></div>
+  </dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script>
+  (function startMira() {
+    const $ = id => document.getElementById(id);
+    function setTheme(theme) {
+      document.documentElement.dataset.theme = theme;
+      $('theme').setAttribute('aria-checked', String(theme === 'dark'));
+      const palette = getComputedStyle(document.documentElement);
+      const color = name => palette.getPropertyValue(name).trim();
+      document.querySelector('meta[name="theme-color"]').content = color('--bg');
+      const mark = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 16 16" shape-rendering="crispEdges">
+        <path fill="${color('--accent')}" d="M5 2h6v2H5zM3 3h2v2H3zM2 5h2v6H2zM3 11h2v2H3zM5 12h6v2H5zM11 11h2v2h-2zM12 5h2v6h-2zM11 3h2v2h-2z"/>
+        <path fill="${color('--accent-hover')}" d="M7 0h2v6H7zM0 7h6v2H0zM10 7h6v2h-6zM7 10h2v6H7z"/>
+        <path fill="${color('--orange')}" d="M7 7h2v2H7z"/>
+      </svg>`;
+      $('mira-icon').href = 'data:image/svg+xml,' + encodeURIComponent(mark);
+      $('header-logo').src = $('mira-icon').href;
+    }
+    setTheme(document.documentElement.dataset.theme || 'dark');
+    const accountMenu = $('account-menu');
+    $('theme').onclick = () => {
+      setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
+      try {localStorage.setItem('mira:tema', document.documentElement.dataset.theme);} catch {}
+    };
+    document.addEventListener('pointerdown', e => { if (!accountMenu.contains(e.target)) accountMenu.open = false; });
+    accountMenu.addEventListener('focusout', e => { if (!accountMenu.contains(e.relatedTarget)) accountMenu.open = false; });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && accountMenu.open) { accountMenu.open = false; $('account').focus(); }
+    });
+    function setupBackgroundMotion() {
+      const screen = document.body;
+      const canvas = $('compasses');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      const preference = matchMedia('(prefers-reduced-motion: reduce)');
+      let frame = 0;
+      let pointer = null;
+      let target = null;
+
+      function draw() {
+        frame = 0;
+        const bounds = canvas.getBoundingClientRect();
+        if (!bounds.width || !bounds.height) return;
+        const scale = Math.min(devicePixelRatio || 1, 2);
+        const width = Math.round(bounds.width * scale);
+        const height = Math.round(bounds.height * scale);
+        if (canvas.width !== width || canvas.height !== height) {
+          canvas.width = width;
+          canvas.height = height;
+        }
+        ctx.setTransform(scale, 0, 0, scale, 0, 0);
+        ctx.clearRect(0, 0, bounds.width, bounds.height);
+        if (!preference.matches && pointer) {
+          target = { x: pointer.x - bounds.left, y: pointer.y - bounds.top };
+        }
+        const aim = target || {x: bounds.width / 2, y: bounds.height / 2};
+        const styles = getComputedStyle(screen);
+        const halfLength = bounds.width < 650 ? 15 : 19;
+        const ink = ctx.createLinearGradient(-halfLength, 0, halfLength, 0);
+        ink.addColorStop(0, styles.getPropertyValue('--orange').trim());
+        ink.addColorStop(1, styles.getPropertyValue('--accent').trim());
+        ctx.fillStyle = ink;
+        const step = bounds.width < 650 ? 44 : 56;
+        for (let y = step / 2; y < bounds.height; y += step) {
+          for (let x = step / 2; x < bounds.width; x += step) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(Math.atan2(aim.y - y, aim.x - x));
+            ctx.fillRect(-halfLength, -1.5, halfLength * 2, 3);
+            ctx.restore();
+          }
+        }
+      }
+      function scheduleDraw() {
+        if (!frame && !document.hidden) frame = requestAnimationFrame(draw);
+      }
+      function track(event) {
+        pointer = {x: event.clientX, y: event.clientY};
+        if (!preference.matches) scheduleDraw();
+      }
+      screen.addEventListener('pointermove', track, {passive: true});
+      screen.addEventListener('pointerdown', track, {passive: true});
+      new MutationObserver(scheduleDraw).observe(document.documentElement, {attributes: true, attributeFilter: ['data-theme']});
+      new ResizeObserver(scheduleDraw).observe(canvas);
+      document.addEventListener('visibilitychange', scheduleDraw);
+      scheduleDraw();
+      preference.addEventListener('change', scheduleDraw);
+    }
+    setupBackgroundMotion();
+    const host = { domain: 'vps-01.example.com', ip: '192.0.2.10' };
+    for (const address of document.querySelectorAll('[data-host-address]')) {
+      address.textContent = `${host.domain} - ${host.ip}`;
+    }
+    const projects = [
+      { slug: 'saas', name: 'SaaS pessoal', client: 'Pessoal', domain: 'saas.seudominio.com', description: 'Node.js + PostgreSQL', status: 'Em produção' },
+      { slug: 'portfolio', name: 'Portfólio pessoal', client: 'Pessoal', domain: 'portfolio.seudominio.com', description: 'Next.js', status: 'Em produção' },
+      { slug: 'membros', name: 'Área de membros', client: 'Cliente X', domain: 'membros.seudominio.com', description: 'Laravel + MySQL', status: 'Em desenvolvimento' },
+      { slug: 'infra', name: 'Infraestrutura', client: 'Pessoal', domain: '', description: 'Nginx + Redis', status: 'Em produção' }
+    ];
+    const containers = [
+      { name: 'saas_api', slug: 'saas', status: 'running', cpu: 8, mem: 312, limit: 1024, hours: 83, image: 'ghcr.io/exemplo/saas-api', tag: 'v1.4.2' },
+      { name: 'saas_worker', slug: 'saas', status: 'stopped', cpu: 2, mem: 96, limit: 512, hours: 0, image: 'ghcr.io/exemplo/saas-worker', tag: 'v1.4.2' },
+      { name: 'saas_db', slug: 'saas', status: 'running', cpu: 1, mem: 256, limit: 1024, hours: 31, image: 'postgres', tag: '16' },
+      { name: 'portifolio_web', slug: 'portfolio', status: 'running', cpu: 2, mem: 128, limit: 512, hours: 292, image: 'ghcr.io/exemplo/portfolio', tag: 'v2.0.1' },
+      { name: 'membros_app', slug: 'membros', status: 'running', cpu: 14, mem: 480, limit: 1024, hours: 31, image: 'ghcr.io/exemplo/membros', tag: 'v0.8.0' },
+      { name: 'membros_db', slug: 'membros', status: 'running', cpu: 1, mem: 256, limit: 512, hours: 31, image: 'mysql', tag: '8' },
+      { name: 'nginx_proxy', slug: 'infra', status: 'running', cpu: 0, mem: 24, limit: 256, hours: 722, image: 'nginx', tag: 'stable' },
+      { name: 'redis_cache', slug: 'infra', status: 'running', cpu: 0, mem: 18, limit: 256, hours: 722, image: 'redis', tag: '7' },
+      { name: 'backup_job', slug: 'infra', status: 'exited', cpu: 2, mem: 32, limit: 128, hours: 0, image: 'ghcr.io/exemplo/backup', tag: 'v1.0' }
+    ];
+    const history = [
+      { slug: 'saas', target: 'saas_api', tag: 'v1.4.2', when: 'Hoje, 14:32', ok: true },
+      { slug: 'saas', target: 'saas_api', tag: 'v1.4.1', when: 'Ontem, 09:15', ok: false },
+      { slug: 'saas', target: 'saas_api', tag: 'v1.4.0', when: 'Há 3 dias', ok: true },
+      { slug: 'portfolio', target: 'portifolio_web', tag: 'v2.0.1', when: 'Há 12 dias', ok: true }
+    ];
+    const jobs = new Map();
+    const buffers = new Map();
+    const locale = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
+    const active = c => c.status === 'running' || c.status === 'unhealthy';
+    const projectFor = slug => projects.find(p => p.slug === slug);
+    const members = slug => containers.filter(c => c.slug === slug);
+    const byName = name => containers.find(c => c.name === name);
+    const html = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+    const emptyRow = (n, message) => `<tr><td class="empty" colspan="${n}">${html(message)}</td></tr>`;
+    const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+    const time = date => date.toLocaleTimeString('pt-BR', { hour12: false });
+    const uptime = c => !active(c) ? '—' : c.hours < 1 ? '< 1 h' : `${Math.floor(c.hours / 24)}d ${c.hours % 24}h`;
+    const memory = c => `${active(c) ? locale.format(c.mem) + ' MB' : '—'} / ${locale.format(c.limit)} MB`;
+    const meter = (percent, tone = '') => `<div class="bar ${tone}" aria-hidden="true"><div style="width:${Math.max(0, Math.min(100, percent))}%"></div></div>`;
+    const actionNames = { start: 'Iniciar', stop: 'Parar', restart: 'Reiniciar' };
+    let view = 'login';
+    let currentSlug = null;
+    let currentContainer = null;
+    let editingProject = null;
+    let confirmation = null;
+    let logTimer;
+    let pausedLines = null;
+    let deploySlug;
+    let toastTimer;
+
+    function notify(message, result = 'ok') {
+      clearTimeout(toastTimer);
+      $('toast').dataset.result = result;
+      $('toast').textContent = message;
+      toastTimer = setTimeout(() => { $('toast').textContent = ''; }, 4000);
+    }
+    function renderBreadcrumbs() {
+      const items = ['<li>MIRA</li>'];
+      if (view === 'users') {
+        items.push('<li aria-current="page">USUÁRIOS</li>');
+      } else {
+        const current = view === 'dashboard' ? ' aria-current="page"' : '';
+        items.push(`<li><a href="#projects" data-nav="projects"${current}>PROJETOS</a></li>`);
+      }
+      if (view === 'detail' || view === 'container') {
+        const project = html(projectFor(currentSlug).name);
+        if (view === 'container') {
+          items.push(`<li><a href="#detail" data-nav="detail">${project}</a></li>`);
+          items.push(`<li aria-current="page">${html(currentContainer.name.toLocaleUpperCase('pt-BR'))}</li>`);
+        } else items.push(`<li aria-current="page">${project}</li>`);
+      }
+      $('breadcrumb-list').innerHTML = items.join('');
+    }
+    $('breadcrumbs').onclick = event => {
+      const link = event.target.closest('a[data-nav]');
+      if (!link) return;
+      event.preventDefault();
+      navigate(link.dataset.nav);
+    };
+    function navigate(next, slug, container = null) {
+      accountMenu.open = false;
+      clearInterval(logTimer);
+      currentContainer = container;
+      pausedLines = null;
+      if (slug && slug !== currentSlug) {
+        $('search').value = $('status-filter').value = $('deploy-filter').value = '';
+        tables.history.page = tables['project-containers'].page = 1;
+      }
+      if (slug) currentSlug = slug;
+      view = next === 'projects' ? 'dashboard' : next;
+      $('app').hidden = false;
+      $('login').hidden = true;
+      for (const name of ['dashboard', 'detail', 'container', 'users']) $(name).hidden = name !== view;
+      accountMenu.querySelectorAll('[data-nav]').forEach(button => {
+        if (button.dataset.nav === next) button.setAttribute('aria-current', next === 'projects' ? 'location' : 'page');
+        else button.removeAttribute('aria-current');
+      });
+      if (view === 'dashboard') renderDashboard();
+      if (view === 'detail') renderDetail();
+      if (view === 'container') {
+        $('log-query').value = '';
+        renderContainer();
+      }
+      renderBreadcrumbs();
+      const heading = $(view).querySelector('h1');
+      document.title = `${heading.textContent} · Mira`;
+      if (view === 'users') renderUsers();
+      if (next === 'projects') {
+        $('projects-title').focus({ preventScroll: true });
+        $('projects').scrollIntoView({ block: 'start' });
+      } else {
+        heading.focus({ preventScroll: true });
+        window.scrollTo(0, 0);
+      }
+    }
+    function passwordVisible(visible) {
+      $('password').type = visible ? 'text' : 'password';
+      $('reveal').textContent = visible ? 'Ocultar' : 'Mostrar';
+      $('reveal').setAttribute('aria-label', visible ? 'Ocultar senha' : 'Mostrar senha');
+    }
+    function clearLoginError() {
+      $('login-error').hidden = true;
+      for (const field of [$('email'), $('password')]) field.removeAttribute('aria-invalid');
+    }
+    const users = [{ id: 1, name: 'Administrador', email: $('email').defaultValue, password: $('password').defaultValue, active: true }];
+    let signedInUser = null;
+    let editingUser = null;
+    const pageSize = 10;
+    const tables = {
+      'user-rows': { label: 'usuários', render: renderUsers },
+      'project-rows': { label: 'projetos', render: renderProjects },
+      'project-containers': { label: 'containers', render: renderProjectContainers },
+      history: { label: 'deploys', render: renderDetail }
+    };
+    for (const [id, table] of Object.entries(tables)) {
+      table.page = 1;
+      const footer = document.createElement('footer');
+      footer.className = 'table-footer';
+      footer.innerHTML = `<span class="count" aria-live="polite"></span><nav class="pager" aria-label="Paginação de ${table.label}">
+        <button aria-label="Página anterior" title="Página anterior">‹</button><span></span><button aria-label="Próxima página" title="Próxima página">›</button></nav>`;
+      $(id).closest('.table-wrap').after(footer);
+      table.count = footer.querySelector('.count');
+      table.position = footer.querySelector('.pager span');
+      [table.previous, table.next] = footer.querySelectorAll('button');
+      table.previous.onclick = () => { table.page--; table.render(); };
+      table.next.onclick = () => { table.page++; table.render(); };
+    }
+    function pageRows(id, rows, total = rows.length) {
+      const table = tables[id];
+      const pages = Math.max(1, Math.ceil(rows.length / pageSize));
+      table.page = Math.max(1, Math.min(table.page, pages));
+      const offset = (table.page - 1) * pageSize;
+      const end = Math.min(offset + pageSize, rows.length);
+      const count = rows.length ? `${offset + 1}–${end} de ${rows.length}` : '0';
+      table.count.textContent = count + (rows.length === 1 ? ' registro' : ' registros') + (total === rows.length ? '' : ` (${total} no total)`);
+      table.position.textContent = `Página ${table.page} de ${pages}`;
+      table.previous.disabled = table.page === 1;
+      table.next.disabled = table.page === pages;
+      return rows.slice(offset, end);
+    }
+    function resetTablePage(id) {
+      tables[id].page = 1;
+      tables[id].render();
+    }
+    function renderUsers() {
+      const query = $('user-search').value.trim().toLocaleLowerCase('pt-BR');
+      const matches = users.filter(u => `${u.name} ${u.email} administrador`.toLocaleLowerCase('pt-BR').includes(query));
+      $('user-rows').innerHTML = pageRows('user-rows', matches, users.length).map(u => {
+        const email = html(u.email);
+        const status = u.active ? 'Ativo' : 'Inativo';
+        const toggle = u.active ? 'Desativar' : 'Ativar';
+        return `<tr><td>${html(u.name)}</td><td>${email}</td><td>Administrador</td><td><span class="project-badge ${u.active ? 'production' : 'archived'}">${status}</span></td>
+          <td>${html(u.lastSignIn || '—')}</td><td><div class="actions">
+          <button class="icon" data-edit-user="${u.id}" aria-label="Editar ${email}" title="Editar ${email}">✎</button>
+          <button class="icon" data-toggle-user="${u.id}" aria-label="${toggle} ${email}" title="${u === signedInUser ? 'Conta em uso' : toggle + ' ' + email}" ${u === signedInUser ? 'disabled' : ''}>⏻</button>
+          </div></td></tr>`;
+      }).join('') || emptyRow(6, 'Nenhum usuário corresponde à busca.');
+    }
+    function userDialog(user = null) {
+      editingUser = user;
+      $('user-form').reset();
+      $('user-name').setCustomValidity('');
+      $('user-name').value = user?.name || '';
+      $('user-email').setCustomValidity('');
+      $('user-email').value = user?.email || '';
+      $('user-password').required = !user;
+      $('user-password-label').textContent = user ? 'Nova senha (opcional)' : 'Senha';
+      $('user-dialog-title').textContent = user ? 'Editar usuário' : 'Novo usuário';
+      $('save-user').textContent = user ? 'Salvar alterações' : 'Criar usuário';
+      $('user-dialog').showModal();
+      $('user-name').focus();
+    }
+    function refreshUsers(id) {
+      renderUsers();
+      const button = $('user-rows').querySelector(`[data-edit-user="${id}"]`);
+      (button || $('user-search')).focus();
+    }
+    $('new-user').onclick = () => userDialog();
+    $('user-name').oninput = () => $('user-name').setCustomValidity('');
+    $('user-email').oninput = () => $('user-email').setCustomValidity('');
+    $('user-form').onsubmit = event => {
+      event.preventDefault();
+      const name = $('user-name').value.trim();
+      if (!name) return rejectField($('user-name'), 'Informe o nome do usuário.');
+      const email = $('user-email').value.trim().toLowerCase();
+      if (users.some(u => u !== editingUser && u.email === email)) return rejectField($('user-email'), 'Este e-mail já está cadastrado.');
+      const user = editingUser || { id: users.length + 1, active: true };
+      user.name = name;
+      user.email = email;
+      if ($('user-password').value) user.password = $('user-password').value;
+      if (!editingUser) users.push(user);
+      if (user === signedInUser) $('header-user-name').textContent = user.name;
+      $('user-dialog').close();
+      refreshUsers(user.id);
+      notify(editingUser ? 'Usuário atualizado.' : 'Usuário criado.');
+    };
+    $('user-dialog').onclose = () => { $('user-password').value = ''; };
+    $('user-rows').onclick = event => {
+      const button = event.target.closest('button');
+      if (!button) return;
+      const user = users.find(u => u.id === Number(button.dataset.editUser || button.dataset.toggleUser));
+      if (button.dataset.editUser) return userDialog(user);
+      if (user === signedInUser) return;
+      const action = user.active ? 'Desativar' : 'Ativar';
+      const effect = user.active ? 'perderá o acesso ao console' : 'poderá entrar no console';
+      confirmAction(action + ' usuário?', `${user.email} ${effect}.`, action, user.active, () => {
+        user.active = !user.active;
+        refreshUsers(user.id);
+        notify(user.active ? 'Usuário ativado.' : 'Usuário desativado.');
+      });
+    };
+    $('user-search').oninput = () => resetTablePage('user-rows');
+    function resetLogin() {
+      $('login-form').reset();
+      clearLoginError();
+      passwordVisible(false);
+    }
+    $('reveal').onclick = () => passwordVisible($('password').type === 'password');
+    $('restore-login').onclick = () => { resetLogin(); $('email').focus(); };
+    $('login-form').oninput = clearLoginError;
+    $('login-form').onsubmit = event => {
+      event.preventDefault();
+      const user = users.find(u => u.active && u.email === $('email').value.trim().toLowerCase() && u.password === $('password').value);
+      if (!user) {
+        $('login-error').hidden = false;
+        for (const field of [$('email'), $('password')]) field.setAttribute('aria-invalid', 'true');
+        $('email').focus();
+        return;
+      }
+      signedInUser = user;
+      user.lastSignIn = new Date().toLocaleString('pt-BR');
+      $('header-user-name').textContent = user.name;
+      $('user-search').value = '';
+      navigate('dashboard');
+    };
+    $('logout').onclick = () => {
+      signedInUser = null;
+      for (const table of Object.values(tables)) table.page = 1;
+      view = 'login';
+      accountMenu.open = false;
+      clearInterval(logTimer);
+      clearTimeout(toastTimer);
+      $('toast').textContent = '';
+      $('project-search').value = $('search').value = $('status-filter').value = $('log-query').value = '';
+      currentContainer = null;
+      currentSlug = null;
+      $('app').hidden = true;
+      $('login').hidden = false;
+      document.title = 'Mira · Acesso ao console';
+      resetLogin();
+      pausedLines = null;
+      window.scrollTo(0, 0);
+      $('email').focus({ preventScroll: true });
+    };
+
+    function badge(value) {
+      const tones = { Concluído: 'running', Falhou: 'stopped' };
+      return `<span class="status ${tones[value] || html(value)}">${html(value)}</span>`;
+    }
+    function buttonsFor(c, compact = true) {
+      const blocked = jobs.get(c.slug)?.target === c.name;
+      const actions = active(c) ? ['restart', 'stop'] : ['start'];
+      const symbols = { restart: '↻', stop: '■', start: '▶' };
+      return `<div class="actions">${actions.map(action => {
+        const label = `${actionNames[action]} ${c.name}`;
+        return `<button class="${compact ? 'icon' : 'button'} ${action === 'stop' ? 'danger' : action === 'start' ? 'primary' : ''}" data-action="${action}" data-target="${html(c.name)}" title="${html(label)}" aria-label="${html(label)}" ${blocked ? 'disabled' : ''}><span aria-hidden="true">${symbols[action]}</span>${compact ? '' : actionNames[action]}</button>`;
+      }).join('')}</div>`;
+    }
+    function renderMetrics(id, metrics) {
+      $(id).innerHTML = metrics.map(([label, value, detail, percent, tone]) =>
+        `<div class="metric"><dt class="metric-label">${html(label)}</dt><dd><div class="metric-value">${html(value)}</div>${percent == null ? '' : meter(percent, tone)}${detail ? `<div class="metric-sub">${html(detail)}</div>` : ''}</dd></div>`
+      ).join('');
+    }
+    function renderDashboard() {
+      const running = containers.filter(active);
+      const cpu = 8 + running.reduce((sum, c) => sum + c.cpu, 0);
+      const mem = 3523 + running.reduce((sum, c) => sum + c.mem, 0);
+      const percent = Math.round(mem / 8192 * 100);
+      const metrics = [
+        ['Containers ativos', running.length, `de ${containers.length} no total`, null],
+        ['CPU', cpu + '%', '4 vCPU · load 1,36', cpu],
+        ['Memória', percent + '%', `${locale.format(mem / 1024)} / 8 GB`, percent],
+        ['Disco', '48%', '48 / 100 GB', 48, 'orange']
+      ];
+      renderMetrics('metrics', metrics);
+      renderProjects();
+    }
+
+    const projectTones = { 'Em produção': 'production', 'Em desenvolvimento': 'development', Arquivado: 'archived' };
+    function renderProjects() {
+      const query = $('project-search').value.trim().toLocaleLowerCase('pt-BR');
+      const visible = projects.filter(p => [p.name, p.slug, p.client, p.domain, ...members(p.slug).map(c => c.name)]
+        .some(value => value.toLocaleLowerCase('pt-BR').includes(query)));
+      $('project-rows').innerHTML = pageRows('project-rows', visible, projects.length).map(p => {
+        const list = members(p.slug);
+        return `<tr data-project="${html(p.slug)}">
+          <td><button class="text-button">${html(p.name)}</button><span class="project-domain">${html(p.domain || 'Sem domínio')}</span></td>
+          <td class="numeric">${list.filter(active).length} de ${list.length}</td>
+          <td><span class="project-badge ${projectTones[p.status] || ''}">${html(p.status)}</span></td><td>${html(p.client)}</td>
+          <td class="numeric"><button class="icon" data-edit-project="${html(p.slug)}" title="Editar ${html(p.name)}" aria-label="Editar ${html(p.name)}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" style="vertical-align:middle"><path d="m4 16-1 5 5-1L20 8l-4-4zM13 7l4 4"/></svg></button></td>
+        </tr>`;
+      }).join('') || emptyRow(5, projects.length ? 'Nenhum projeto corresponde à busca.' : 'Nenhum projeto cadastrado.');
+    }
+    $('project-search').oninput = () => resetTablePage('project-rows');
+
+    function renderProjectContainers() {
+      const list = members(currentSlug);
+      const query = $('search').value.trim().toLocaleLowerCase('pt-BR');
+      const state = $('status-filter').value;
+      const visible = list.filter(c => c.name.toLocaleLowerCase('pt-BR').includes(query) && (!state || c.status === state));
+      $('container-filters').hidden = !list.length;
+      $('project-containers').innerHTML = pageRows('project-containers', visible, list.length).map(c => `
+        <tr data-container="${html(c.name)}"><td class="td-name"><button class="text-button" aria-label="Abrir detalhes de ${html(c.name)}">${html(c.name)}</button></td>
+        <td>${badge(c.status)}</td><td class="numeric">${memory(c)}</td><td>${buttonsFor(c)}</td></tr>`
+      ).join('') || emptyRow(4, list.length ? 'Nenhum container corresponde aos filtros.' : `Nenhum container vinculado. Use o label mira.project=${currentSlug} no Docker.`);
+    }
+    $('search').oninput = () => resetTablePage('project-containers');
+    $('status-filter').onchange = () => resetTablePage('project-containers');
+    $('deploy-filter').onchange = () => resetTablePage('history');
+    function renderDetail() {
+      const p = projectFor(currentSlug);
+      const list = members(p.slug);
+      const running = list.filter(active);
+      const deploys = history.filter(d => d.slug === p.slug);
+      $('project-name').textContent = p.name;
+      $('project-client').textContent = p.client;
+      $('project-description').textContent = p.description;
+      $('project-description').hidden = !p.description;
+      $('project-status').className = `project-badge ${projectTones[p.status] || ''}`;
+      $('project-status').textContent = p.status;
+      $('project-domain').textContent = p.domain;
+      $('project-domain-row').hidden = !p.domain;
+      renderProjectContainers();
+      const result = $('deploy-filter').value;
+      const filteredDeploys = deploys.filter(d => !result || d.ok === (result === 'ok'));
+      $('history').innerHTML = pageRows('history', filteredDeploys, deploys.length).map(d => `<tr><td>${html(d.tag)}</td><td>${html(d.target)}</td><td>${html(d.when)}</td><td>${badge(d.ok ? 'Concluído' : 'Falhou')}</td></tr>`).join('') || emptyRow(4, deploys.length ? 'Nenhum deploy corresponde ao filtro.' : 'Nenhum deploy registrado para este projeto.');
+      const cpu = running.reduce((total, c) => total + c.cpu, 0);
+      const usedMemory = running.reduce((total, c) => total + c.mem, 0);
+      const memoryLimit = list.reduce((total, c) => total + c.limit, 0);
+      const longestRunning = running.reduce((oldest, c) => !oldest || c.hours > oldest.hours ? c : oldest, null);
+      renderMetrics('resources', [
+        ['Containers ativos', running.length, `de ${list.length} vinculados`, list.length ? running.length / list.length * 100 : null],
+        ['CPU em uso', list.length ? `${cpu}%` : '—', 'Soma dos containers ativos', list.length ? cpu : null],
+        ['Memória em uso', list.length ? `${locale.format(usedMemory)} MB` : '—', memoryLimit ? `de ${locale.format(memoryLimit)} MB` : '', memoryLimit ? usedMemory / memoryLimit * 100 : null],
+        ['Maior uptime', longestRunning ? uptime(longestRunning) : '—', longestRunning?.name]
+      ]);
+      $('new-deploy').disabled = !list.length;
+      $('deploy-label').textContent = jobs.has(p.slug) ? 'Acompanhar deploy' : 'Fazer deploy';
+      $('archive').disabled = p.status === 'Arquivado';
+    }
+    function renderContainer() {
+      const c = currentContainer;
+      const running = active(c);
+      $('container-name').textContent = c.name;
+      $('container-status').innerHTML = badge(c.status);
+      $('container-image').textContent = `${c.image}:${c.tag}`;
+      $('container-actions').innerHTML = buttonsFor(c, false);
+      renderMetrics('container-resources', [
+        ['CPU em uso', running ? `${locale.format(c.cpu)}%` : '—', '', running ? c.cpu : null],
+        ['Memória em uso', running ? `${locale.format(c.mem)} MB` : '—', `Limite de ${locale.format(c.limit)} MB`, running && c.limit ? c.mem / c.limit * 100 : null],
+        ['Uptime', uptime(c)]
+      ]);
+      openLogs();
+    }
+    document.addEventListener('click', event => {
+      const button = event.target.closest('button');
+      if (button?.dataset.action) return askContainerAction(byName(button.dataset.target), button.dataset.action);
+      if (button?.dataset.editProject) return projectDialog(projectFor(button.dataset.editProject));
+      const project = event.target.closest('tr[data-project]');
+      if (project) return navigate('detail', project.dataset.project);
+      const row = event.target.closest('tr[data-container]');
+      if (row) {
+        const c = byName(row.dataset.container);
+        return navigate('container', c.slug, c);
+      }
+      if (!button) return;
+      if (button.hasAttribute('data-close')) button.closest('dialog').close();
+      if (button.dataset.nav) navigate(button.dataset.nav);
+    });
+
+    function confirmAction(title, body, label, danger, onConfirm) {
+      $('confirm-title').textContent = title;
+      $('confirm-body').textContent = body;
+      $('confirm-action').textContent = label;
+      $('confirm-action').className = 'button ' + (danger ? 'danger' : 'primary');
+      confirmation = onConfirm;
+      $('confirm-dialog').showModal();
+      $('cancel-action').focus();
+    }
+    $('confirm-action').onclick = () => {
+      const callback = confirmation;
+      $('confirm-dialog').close();
+      callback?.();
+    };
+    function askContainerAction(c, action) {
+      const verb = actionNames[action];
+      const effect = { stop: 'O serviço ficará indisponível até ser iniciado.', restart: 'O serviço ficará indisponível durante o reinício.', start: 'O serviço voltará a executar.' };
+      confirmAction(`${verb} container?`, `${c.name} · ${effect[action]}`, verb, action !== 'start', () => {
+        c.status = action === 'stop' ? 'stopped' : 'running';
+        c.hours = 0;
+        const past = { start: 'iniciado', stop: 'parado', restart: 'reiniciado' };
+        const message = `${c.name} ${past[action]}.`;
+        appendLog(c, 'INFO', message);
+        if (view === 'container') renderContainer();
+        else renderDetail();
+        const focusTarget = $(view).querySelector(`[data-target="${c.name}"]`) || $('search');
+        focusTarget.focus({ preventScroll: true });
+        notify(message);
+      });
+    }
+
+    function updateSlugHint() {
+      $('slug-hint').textContent = `Label Docker: mira.project=${$('p-slug').value || 'meu-projeto'}`;
+    }
+    function projectDialog(project = null) {
+      editingProject = project;
+      const form = $('project-form');
+      form.reset();
+      for (const field of form.elements) field.setCustomValidity?.('');
+      if (project) {
+        for (const [key, value] of Object.entries(project)) form.elements.namedItem(key).value = value;
+      }
+      $('p-slug').readOnly = Boolean(project);
+      const archiveOption = Array.from($('p-status').options).find(option => option.value === 'Arquivado');
+      archiveOption.disabled = project && project.status !== 'Arquivado';
+      $('project-dialog-title').textContent = project ? 'Editar projeto' : 'Novo projeto';
+      $('save-project').textContent = project ? 'Salvar alterações' : 'Criar projeto';
+      updateSlugHint();
+      $('project-dialog').showModal();
+      $('p-name').focus();
+    }
+    $('new-project').onclick = () => projectDialog();
+    $('project-form').oninput = event => {
+      event.target.setCustomValidity('');
+      updateSlugHint();
+    };
+    function rejectField(field, message) {
+      field.setCustomValidity(message);
+      field.reportValidity();
+    }
+    $('project-form').onsubmit = event => {
+      event.preventDefault();
+      const p = Object.fromEntries(Array.from(new FormData(event.target), ([key, value]) => [key, value.trim()]));
+      if (!p.name) return rejectField($('p-name'), 'Informe o nome do projeto.');
+      if (!editingProject && projectFor(p.slug)) return rejectField($('p-slug'), 'Este slug já pertence a outro projeto.');
+      p.client ||= 'Pessoal';
+      if (editingProject) Object.assign(editingProject, p);
+      else projects.push(p);
+      $('project-dialog').close();
+      if (editingProject) {
+        renderProjects();
+        const trigger = $('project-rows').querySelector(`[data-edit-project="${CSS.escape(p.slug)}"]`);
+        (trigger || $('project-search')).focus();
+      } else navigate('detail', p.slug);
+      notify(editingProject ? 'Alterações salvas.' : 'Projeto criado.');
+    };
+    $('archive').onclick = () => {
+      const p = projectFor(currentSlug);
+      confirmAction('Arquivar projeto?', `${p.name} será marcado como arquivado. Os containers continuarão no estado atual.`, 'Arquivar', true, () => {
+        p.status = 'Arquivado';
+        renderDetail();
+        $('project-name').focus();
+        notify('Projeto arquivado.');
+      });
+    };
+
+    function targetDefaults() {
+      const c = byName($('target').value);
+      $('image').value = c.image;
+      $('tag').value = c.tag;
+    }
+    function showProgress(job) {
+      $('deploy-form').hidden = true;
+      $('deploy-progress').hidden = false;
+      $('deploy-target').textContent = `${job.target} ← ${job.image}:${job.tag}`;
+      $('deploy-state').textContent = job.status;
+      $('deploy-state').dataset.result = job.result || '';
+      $('deploy-steps').replaceChildren(...job.steps.map(message => {
+        const item = document.createElement('li');
+        item.textContent = message;
+        return item;
+      }));
+    }
+    function openDeploy() {
+      deploySlug = currentSlug;
+      const p = projectFor(deploySlug);
+      const job = jobs.get(p.slug);
+      $('deploy-project').textContent = p.name;
+      if (job) showProgress(job);
+      else {
+        $('deploy-form').hidden = false;
+        $('deploy-progress').hidden = true;
+        $('target').replaceChildren(...members(p.slug).map(c => new Option(c.name, c.name)));
+        for (const field of [$('image'), $('tag')]) field.setCustomValidity('');
+        targetDefaults();
+      }
+      $('deploy-dialog').showModal();
+      if (!job) $('target').focus();
+    }
+    $('new-deploy').onclick = openDeploy;
+    $('target').onchange = targetDefaults;
+    $('deploy-form').oninput = event => event.target.setCustomValidity('');
+    $('deploy-form').onsubmit = event => {
+      event.preventDefault();
+      if (jobs.has(deploySlug)) return;
+      const image = $('image').value.trim();
+      const tag = $('tag').value.trim();
+      if (!image || /\s/.test(image)) return rejectField($('image'), 'Informe uma imagem sem espaços.');
+      if (!/^[\w][\w.-]{0,127}$/.test(tag)) return rejectField($('tag'), 'Use letras, números, ponto, hífen ou sublinhado.');
+      const c = byName($('target').value);
+      const job = { slug: c.slug, target: c.name, image, tag, steps: [], status: 'Deploy em andamento…' };
+      clearTimeout(toastTimer);
+      $('toast').textContent = '';
+      jobs.set(c.slug, job);
+      showProgress(job);
+      $('deploy-progress').querySelector('button').focus();
+      renderDetail();
+      const ok = tag !== 'indisponivel';
+      const steps = ok
+        ? ['Imagem baixada', active(c) ? 'Container anterior parado' : 'Container anterior já inativo', 'Container recriado com as portas e variáveis atuais', 'Container iniciado', 'Verificação de saúde concluída']
+        : ['Falha ao baixar a imagem. Confira a imagem e a tag.'];
+      function advance() {
+        job.steps.push(steps[job.steps.length]);
+        const done = job.steps.length === steps.length;
+        if (done) {
+          if (ok) Object.assign(c, { status: 'running', hours: 0, image, tag });
+          job.status = ok ? 'Deploy concluído.' : 'Deploy falhou.';
+          job.result = ok ? 'ok' : 'erro';
+          history.unshift({ slug: c.slug, target: c.name, tag, when: time(new Date()), ok });
+          jobs.delete(c.slug);
+          appendLog(c, ok ? 'INFO' : 'ERR', `${job.status} ${image}:${tag}`);
+          if (view === 'detail' && currentSlug === c.slug) renderDetail();
+          if (view === 'dashboard') renderDashboard();
+          if (view === 'container' && currentContainer === c) renderContainer();
+        }
+        if ($('deploy-dialog').open && deploySlug === c.slug) showProgress(job);
+        else if (done && view !== 'login') notify(`${c.name} · ${job.status}`, job.result);
+        if (!done) setTimeout(advance, 550);
+      }
+      setTimeout(advance, 450);
+    };
+
+    function appendLog(c, level, message, date = new Date()) {
+      if (!buffers.has(c.name)) buffers.set(c.name, []);
+      const buffer = buffers.get(c.name);
+      buffer.push({ stamp: time(date), level, message });
+      if (buffer.length > 200) buffer.shift();
+    }
+    for (const c of containers) {
+      const messages = [
+        ['INFO', `${c.name} · imagem ${c.image}:${c.tag}`],
+        ['INFO', 'Configuração do container carregada'],
+        ['INFO', 'Processo principal iniciado'],
+        [active(c) ? 'INFO' : 'WARN', active(c) ? 'Verificação de saúde concluída' : 'Processo encerrado']
+      ];
+      messages.forEach(([lvl, msg], i) => appendLog(c, lvl, msg, new Date(Date.now() - (4 - i) * 2000)));
+    }
+    function renderLogs(follow = false) {
+      const buffer = pausedLines ?? buffers.get(currentContainer.name) ?? [];
+      const filter = $('log-query').value.trim().toLowerCase();
+      const lines = buffer.filter(line => `${line.level} ${line.message}`.toLowerCase().includes(filter));
+      const out = $('log-output');
+      out.innerHTML = lines.map(line => `<div class="log-line"><time class="log-time">${line.stamp}</time><span class="log-level ${line.level}">${line.level}</span><span class="log-msg">${html(line.message)}</span></div>`).join('') || '<p class="empty">Nenhuma linha corresponde ao filtro. Tente outra mensagem ou nível.</p>';
+      $('log-count').textContent = filter ? `${lines.length} de ${plural(buffer.length, 'linha', 'linhas')}` : plural(buffer.length, 'linha', 'linhas');
+      if (follow) out.scrollTop = out.scrollHeight;
+    }
+    function openLogs() {
+      clearInterval(logTimer);
+      const c = currentContainer;
+      const paused = pausedLines !== null;
+      const streaming = active(c) && !paused;
+      $('pause').disabled = !active(c);
+      $('pause').textContent = paused ? 'Retomar' : 'Pausar';
+      $('stream-state').classList.toggle('paused', !streaming);
+      $('stream-state').lastElementChild.textContent = !active(c) ? 'Container inativo' : paused ? 'Pausado' : 'Recebendo logs';
+      renderLogs(true);
+      if (!streaming) return;
+      logTimer = setInterval(() => {
+        const out = $('log-output');
+        const atEnd = out.scrollHeight - out.clientHeight - out.scrollTop < 12;
+        const now = new Date();
+        const warn = now.getSeconds() % 7 === 0;
+        appendLog(c, warn ? 'WARN' : 'INFO', warn ? `${c.name} · resposta acima da latência esperada` : `${c.name} · verificação de saúde concluída`);
+        renderLogs(atEnd);
+      }, 1800);
+    }
+    $('pause').onclick = () => {
+      pausedLines = pausedLines === null ? buffers.get(currentContainer.name).slice() : null;
+      openLogs();
+    };
+    $('log-query').oninput = () => renderLogs(true);
+
+  })();
+  </script>
+</body>
+</html>
