@@ -200,9 +200,11 @@ server/
   migrations/
   go.mod
 web/
-  app/
   modules/{auth,users,projects,containers,deployments}/
-  shared/{api,components,styles}/
+  src/
+    app/
+    shared/{api,components,styles}/
+    main.tsx
   index.html
   package.json
 deploy/
@@ -218,9 +220,10 @@ docker-compose.yml
 | `server/cmd/` | Pontos de entrada. `cmd/api/main.go` carrega a configuração, monta as dependências e inicia o servidor. |
 | `server/internal/` | Regras de negócio e integrações com SQLite, o componente Docker e o GitHub Actions. A camada HTTP chama esses pacotes. |
 | `server/migrations/` | Migrações do banco de dados. |
-| `web/app/` | Entrada do React, layout do console, navegação e composição das telas. |
+| `web/src/main.tsx` | Ponto de entrada que monta o React no HTML. |
+| `web/src/app/` | Layout do console, navegação e composição das telas. |
 | `web/modules/` | Telas e lógica de cada área. **Projetos** mostra também as métricas da VPS. **Containers** inclui o painel de logs. |
-| `web/shared/` | Cliente HTTP e SSE, componentes reutilizáveis e estilos comuns, incluindo os temas. Pode ser usado por `app/` e `modules/`. |
+| `web/src/shared/` | Cliente HTTP e SSE, componentes reutilizáveis e estilos comuns, incluindo os temas. Pode ser usado por `web/src/app/` e `web/modules/`. |
 | `deploy/nginx/` | Configuração do vhost para integrar ao Nginx compartilhado em `/srv/infra`. |
 | `Dockerfile` e `docker-compose.yml` | Build com etapas para `web/` e `server/` e configuração dos serviços do Mira. O contexto de build é a raiz do projeto. |
 

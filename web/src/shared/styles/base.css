@@ -1,0 +1,20 @@
+:root {
+  color-scheme: dark;
+  --fundo: #090f1e;
+  --superficie: #101b2e;
+  --borda: #324560;
+  --texto: #ecf4ff;
+  --texto-secundario: #b0c1da;
+  --laranja: #ff791f;
+  background: var(--fundo);
+  color: var(--texto);
+  font: 14px/1.6 'Courier New', Courier, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}

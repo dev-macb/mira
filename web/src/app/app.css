@@ -1,0 +1,37 @@
+.tela-inicial {
+  min-block-size: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  padding: 24px;
+  background-image: radial-gradient(var(--borda) 1px, transparent 1px);
+  background-size: 12px 12px;
+}
+
+.painel-inicial {
+  width: min(100%, 370px);
+  border: 1px solid var(--borda);
+  background: var(--superficie);
+  padding: 28px;
+  text-align: center;
+}
+
+.marca-inicial {
+  margin: 0 0 16px;
+  color: var(--laranja);
+  font: clamp(4px, 1.4vw, 5px)/1.25 'Segoe UI Symbol', monospace;
+}
+
+.painel-inicial h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.painel-inicial h1 > span {
+  color: var(--laranja);
+}
+
+.painel-inicial p {
+  margin: 8px 0 0;
+  color: var(--texto-secundario);
+}
