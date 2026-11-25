@@ -14,6 +14,13 @@
 
 Recarregar volta ao login e restaura os dados de exemplo. A única preferência gravada em `localStorage` é o tema, na chave `mira:tema`. A autenticação, as métricas e as operações são simuladas. A aplicação ainda não se comunica com a VPS nem com o Docker.
 
+## Base conectada da semana 1
+
+- `server/cmd/api` entrega o build de `web/` na raiz e `/api/saude`. Ao iniciar, aplica as migrações embutidas em `server/migrations/` no SQLite.
+- `server/api/router.go` registra as rotas. `server/api/saude.go` verifica o SQLite e o cliente de inventário, quando configurado. A resposta informa apenas disponibilidade.
+- No Compose, `server/cmd/docker` consulta o daemon com o SDK Moby e entrega à API o inventário com `mira.project` preenchido, incluindo containers parados. O cliente usado pela API e o roteador que consulta o daemon ficam em `server/internal/docker/`. A consulta exige o token entre serviços.
+- O [roteiro de implantação](../deploy/README.md) reúne a configuração local da VPS para Compose, Nginx e Certbot. Os fluxos de autenticação, projetos e operações seguem o cronograma do [plano](../PLANO.md).
+
 ## MVP conectado previsto
 
 ```text

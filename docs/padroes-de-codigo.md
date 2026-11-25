@@ -1,5 +1,10 @@
 # Padrões de código
 
+## Idioma
+
+- Use português do Brasil em comentários e nomes de variáveis, funções, componentes, classes e propriedades CSS definidas pelo Mira. Preserve as palavras-chave das linguagens e os nomes definidos por bibliotecas e contratos de integração.
+- Nomeie as variáveis pelo papel que desempenham. Por exemplo, `contextoInicializacao` e `contextoEncerramento` distinguem os dois usos de um contexto.
+
 ## Protótipo HTML
 
 - Preserve a estrutura do [`prototipo.html`](../prototipo.html). O HTML define as telas e os diálogos, o CSS mora no `<style>` e a lógica principal fica no escopo de `startMira()`. Mantenha o arquivo navegável sem instalação ou build.
@@ -19,6 +24,7 @@
 ## MVP conectado
 
 - Use `server/api/` para rotas, middleware, handlers e SSE. Mantenha regras de negócio e integrações em `server/internal/` e mudanças de esquema em `server/migrations/`.
-- Em `web/`, organize a composição das telas em `app/`, os fluxos por área em `modules/` e o cliente de API, componentes reutilizáveis e estilos em `shared/`.
+- Organize a composição das telas em `web/src/app/`, os fluxos por área em `web/modules/` e o cliente de API, componentes reutilizáveis e estilos em `web/src/shared/`.
+- Mantenha os tokens e estilos comuns em `web/src/shared/styles/`. Coloque os estilos específicos junto à tela que os usa.
 - Valide autorização, estado, vínculo e concorrência na API antes de executar operações no Docker. A interface informa o estado e associa erros de validação ao campo correspondente.
 - Ao integrar SSE, feche assinaturas quando a tela mudar de fonte e preserve os dados já recebidos na reconexão. Mantenha os controles descritos nos [requisitos de segurança](./especificacao.md#11-segurança-do-mvp).

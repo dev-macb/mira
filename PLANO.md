@@ -21,6 +21,7 @@ A estimativa é de **oito semanas de trabalho para uma pessoa desenvolvedora**, 
 
 ## Dependências e marcos
 
+- **Início da semana 1** · A base local inclui React e API no mesmo serviço Go, SQLite com migrações e o componente de inventário em rede privada. O [roteiro de implantação](./deploy/README.md) prepara o Compose e os vhosts. A conclusão da semana depende da publicação e da validação com DNS, HTTPS e containers de teste na VPS.
 - **Fim da semana 3** · Validar a primeira entrega navegável com autenticação, projetos e inventário em consulta. Confirmar que as operações de escrita estão indisponíveis nessa etapa.
 - **Fim da semana 6** · Validar ações Docker, retomada dos fluxos SSE e acompanhamento do workflow em um projeto de teste. Exercitar falhas do workflow, a concorrência entre deploy manual e automático e o bloqueio de ações durante deploys solicitados pelo painel.
 - **Fim da semana 8** · Confirmar persistência, revogação de sessões, auditoria e acesso somente por HTTPS antes de liberar o MVP. [Critérios de aceite](./docs/especificacao.md#10-critérios-de-aceite) · [Controles de segurança](./docs/especificacao.md#11-segurança-do-mvp)
