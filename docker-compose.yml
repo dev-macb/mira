@@ -1,0 +1,62 @@
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: '10m'
+    max-file: '3'
+
+services:
+  http:
+    build:
+      context: .
+      target: http
+    environment:
+      MIRA_DOCKER_URL: http://docker-inventory:8080
+      MIRA_DOCKER_TOKEN: ${MIRA_DOCKER_TOKEN:?Defina o token privado do inventário}
+    volumes:
+      - type: bind
+        source: /srv/data/mira
+        target: /srv/data/mira
+        bind:
+          create_host_path: false
+    networks:
+      private:
+      proxy:
+        aliases:
+          - mira-http
+    restart: unless-stopped
+    stop_grace_period: 15s
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, -T, '4', 'http://127.0.0.1:6002/api/saude']
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    logging: *logging
+
+  docker-inventory:
+    build:
+      context: .
+      target: docker-inventory
+    environment:
+      MIRA_DOCKER_TOKEN: ${MIRA_DOCKER_TOKEN:?Defina o token privado do inventário}
+    group_add:
+      - ${MIRA_DOCKER_GID:?Informe o GID do socket Docker}
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        read_only: true
+        bind:
+          create_host_path: false
+    networks:
+      - private
+    restart: unless-stopped
+    stop_grace_period: 15s
+    logging: *logging
+
+networks:
+  private:
+    internal: true
+  proxy:
+    external: true
+    name: proxy

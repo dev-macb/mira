@@ -1,0 +1,5 @@
+.git
+.env
+server/.local
+web/dist
+web/node_modules
