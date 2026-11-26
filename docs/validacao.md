@@ -19,3 +19,11 @@ A versão conectada tem verificações próprias de persistência, sessão, SSE,
 - Siga o [guia de desenvolvimento](../README.md#desenvolvimento-local), abra a página servida pelo Go e confira `200` e `{"status":"ok"}` em `/api/saude`.
 - Reinicie o Go e confirme a abertura do SQLite com as migrações já aplicadas.
 - Na VPS, siga a [validação da implantação](../deploy/README.md#validação) para conferir a consulta pela rede privada e o acesso por HTTPS sem publicar portas do Mira no host.
+
+## Autenticação da semana 2
+
+- Configure `MIRA_JWT_SECRET`, `MIRA_ADMIN_EMAIL` e `MIRA_ADMIN_PASSWORD` e inicie a API com um banco novo. Confirme que a conta é criada e que reiniciar com o mesmo banco não a recria nem altera sua senha.
+- Entre com credenciais válidas, confira a saudação e o último acesso atualizado. Recarregue a página e confirme que a sessão é restaurada pelo cookie sem pedir a senha.
+- Envie credenciais inválidas e confirme a mensagem genérica. Desative a conta diretamente no banco de desenvolvimento e confirme que uma nova autenticação é recusada.
+- Confira no navegador que o refresh usa cookie `HttpOnly`, `SameSite=Strict` e `Secure` quando a origem é HTTPS. Verifique que a resposta de login não inclui senha ou hash.
+- Renove a sessão e confirme que o refresh anterior não pode ser reutilizado. Faça logout e confirme que o refresh revogado não restaura a sessão. Após dez tentativas de login por minuto pela mesma origem, confira a resposta `429`.

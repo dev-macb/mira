@@ -5,14 +5,16 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/dev-macb/mira/server/internal/docker"
 	"github.com/go-chi/chi/v5"
 )
 
-func NovoRoteador(bancoDeDados *sql.DB, clienteInventario *docker.ClienteInventario, diretorioInterface string) http.Handler {
+func NovoRoteador(bancoDeDados *sql.DB, clienteInventario *docker.ClienteInventario, diretorioInterface, segredoJWT string) http.Handler {
 	roteador := chi.NewRouter()
 	roteador.Get("/api/saude", tratarSaude(bancoDeDados, clienteInventario))
+	roteador.Mount("/api/auth", novoRoteadorAutenticacao(bancoDeDados, segredoJWT, time.Now))
 
 	caminhoPaginaInicial := filepath.Join(diretorioInterface, "index.html")
 	roteador.Get("/", func(gravadorResposta http.ResponseWriter, requisicao *http.Request) {

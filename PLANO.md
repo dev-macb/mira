@@ -21,6 +21,8 @@ A estimativa é de **oito semanas de trabalho para uma pessoa desenvolvedora**, 
 
 ## Dependências e marcos
 
+**Acompanhamento:** a etapa 1 está publicada na VPS. A implementação local da etapa 2 já inclui a conta inicial, login, sessão rotativa e tela de acesso; a publicação desta versão requer configurar `MIRA_JWT_SECRET`, `MIRA_ADMIN_EMAIL` e `MIRA_ADMIN_PASSWORD` na VPS. A validação operacional de renovação, logout e conta inativa continua pendente.
+
 - **Início da semana 1** · A base local inclui React e API no mesmo serviço Go, SQLite com migrações e o componente de inventário em rede privada. O [roteiro de implantação](./deploy/README.md) prepara o Compose e os vhosts. A conclusão da semana depende da publicação e da validação com DNS, HTTPS e containers de teste na VPS.
 - **Fim da semana 3** · Validar a primeira entrega navegável com autenticação, projetos e inventário em consulta. Confirmar que as operações de escrita estão indisponíveis nessa etapa.
 - **Fim da semana 6** · Validar ações Docker, retomada dos fluxos SSE e acompanhamento do workflow em um projeto de teste. Exercitar falhas do workflow, a concorrência entre deploy manual e automático e o bloqueio de ações durante deploys solicitados pelo painel.

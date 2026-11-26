@@ -10,14 +10,15 @@ Confirme que o registro A de `mira.macb.tech` aponta para o IPv4 público da VPS
 sudo install -d -o 10001 -g 1001 -m 0750 /srv/data/mira
 cd /srv/apps/mira
 cp .env.example .env
-# Configure o valor em /srv/apps/mira/.env, sem imprimi-lo nos logs.
+# Gere e configure os segredos e a conta inicial no arquivo .env com acesso restrito.
 stat -c '%g' /var/run/docker.sock
+openssl rand -hex 32
 openssl rand -hex 32
 docker compose config --quiet
 docker compose up -d --build --wait
 ```
 
-O serviço HTTP roda com UID `10001` e recebe acesso de escrita ao diretório de dados pelo grupo `1001` do host. Somente `docker-inventory` monta o socket e recebe seu GID real em `MIRA_DOCKER_GID`. Gere um token aleatório de 32 bytes para `MIRA_DOCKER_TOKEN` e use o mesmo valor nos dois serviços. Para a aplicação local, faça uma cópia autorizada do checkout para `/srv/apps/mira`. Siga o procedimento interno de publicação para transferir os arquivos. A conta SSH deste ambiente não permite executar o fluxo completo de `sudo`, configurar o dono do diretório e publicar automaticamente cada atualização na VPS.
+O serviço HTTP roda com UID `10001` e recebe acesso de escrita ao diretório de dados pelo grupo `1001` do host. Somente `docker-inventory` monta o socket e recebe seu GID real em `MIRA_DOCKER_GID`. Gere valores aleatórios separados para `MIRA_DOCKER_TOKEN` e `MIRA_JWT_SECRET`; configure também `MIRA_ADMIN_EMAIL` e uma senha inicial de pelo menos 12 caracteres em `MIRA_ADMIN_PASSWORD`. O administrador inicial só é criado quando o banco ainda não tem usuários. Para a aplicação local, faça uma cópia autorizada do checkout para `/srv/apps/mira`. Siga o procedimento interno de publicação para transferir os arquivos. A conta SSH deste ambiente não permite executar o fluxo completo de `sudo`, configurar o dono do diretório e publicar automaticamente cada atualização na VPS.
 
 ## Nginx e certificado
 

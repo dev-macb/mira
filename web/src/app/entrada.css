@@ -1,0 +1,35 @@
+.tela-acesso {
+  min-block-size: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background-image: radial-gradient(var(--borda) 1px, transparent 1px);
+  background-size: 12px 12px;
+}
+
+.painel-acesso {
+  width: min(100%, 370px);
+  padding: 28px;
+  border: 1px solid var(--borda);
+  background: var(--superficie);
+}
+
+.painel-acesso h1,
+.painel-acesso > p { text-align: center; }
+.painel-acesso h1 { margin: 0; font-size: 24px; }
+.painel-acesso > p { margin: 8px 0 0; }
+.marca-acesso { margin: 0 0 16px; color: var(--laranja); text-align: center; font: clamp(4px, 1.4vw, 5px)/1.25 'Segoe UI Symbol', monospace; }
+.texto-secundario { color: var(--texto-secundario); }
+.formulario-acesso { display: grid; gap: 8px; margin-top: 24px; }
+.formulario-acesso label { margin-top: 8px; }
+.formulario-acesso input { min-width: 0; width: 100%; padding: 10px 12px; border: 1px solid var(--borda); border-radius: 2px; background: var(--fundo); color: var(--texto); font: inherit; }
+.formulario-acesso input:focus-visible,
+.formulario-acesso button:focus-visible,
+.botao-primario:focus-visible { outline: 2px solid var(--laranja); outline-offset: 2px; }
+.campo-senha { display: flex; align-items: center; }
+.campo-senha input { padding-inline-end: 82px; }
+.botao-senha { margin-inline-start: -76px; padding: 5px; border: 0; background: transparent; color: var(--texto-secundario); font: inherit; cursor: pointer; }
+.botao-primario { width: 100%; margin-top: 16px; padding: 10px 14px; border: 0; border-radius: 2px; background: var(--laranja); color: #111; font: inherit; font-weight: 700; cursor: pointer; }
+.botao-primario:disabled { cursor: wait; opacity: .65; }
+.erro-acesso { margin: 6px 0 0; color: #ff8585; }
+.painel-conta .botao-primario { margin-top: 24px; }

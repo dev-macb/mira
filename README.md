@@ -14,7 +14,16 @@ npm --prefix web run build
 go -C server run ./cmd/api
 ```
 
-Abra [Mira](http://127.0.0.1:6002) e consulte a [saúde da API](http://127.0.0.1:6002/api/saude). O Go serve a interface compilada e aplica as migrações automaticamente em `server/.local/mira.db`.
+Antes de iniciar a API pela primeira vez, defina no ambiente `MIRA_JWT_SECRET` com pelo menos 32 bytes aleatórios, `MIRA_ADMIN_EMAIL` e `MIRA_ADMIN_PASSWORD` com pelo menos 12 caracteres. Opcionalmente, defina `MIRA_ADMIN_NAME`. Em PowerShell, por exemplo:
+
+```powershell
+$env:MIRA_JWT_SECRET = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+$env:MIRA_ADMIN_NAME = 'Administrador'
+$env:MIRA_ADMIN_EMAIL = 'admin@exemplo.com'
+$env:MIRA_ADMIN_PASSWORD = 'defina-uma-senha-forte'
+```
+
+Use a senha real apenas no terminal local e não a salve no repositório. O administrador inicial é criado uma vez, apenas se o banco ainda não tiver usuários. Abra [Mira](http://127.0.0.1:6002) e consulte a [saúde da API](http://127.0.0.1:6002/api/saude). O Go serve a interface compilada e aplica as migrações automaticamente em `server/.local/mira.db`.
 
 Para editar a interface com recarga automática, mantenha o Go em execução e rode `npm --prefix web run dev` em outro terminal. O Vite encaminha `/api` ao Go local. O Docker é necessário para testar o inventário com o Compose. Veja a [preparação para a VPS](./deploy/README.md).
 

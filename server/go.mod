@@ -6,8 +6,10 @@ toolchain go1.26.11
 
 require (
 	github.com/go-chi/chi/v5 v5.5.0
+	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/moby/moby/client v0.6.3
 	github.com/pressly/goose/v3 v3.30.1
+	golang.org/x/crypto v0.58.0
 	modernc.org/sqlite v1.63.0
 )
 

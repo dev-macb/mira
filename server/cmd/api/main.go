@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -44,9 +45,17 @@ func executarAPI() error {
 	}
 	defer bancoDeDados.Close()
 
+	if erro := armazenamento.CriarAdministradorInicial(contextoProcesso, bancoDeDados, os.Getenv("MIRA_ADMIN_NAME"), os.Getenv("MIRA_ADMIN_EMAIL"), os.Getenv("MIRA_ADMIN_PASSWORD")); erro != nil {
+		return fmt.Errorf("criar administrador inicial: %w", erro)
+	}
+	segredoJWT := strings.TrimSpace(os.Getenv("MIRA_JWT_SECRET"))
+	if len(segredoJWT) < 32 {
+		return fmt.Errorf("MIRA_JWT_SECRET deve conter ao menos 32 bytes")
+	}
+
 	enderecoHTTP := cmp.Or(os.Getenv("MIRA_HTTP_ADDR"), "127.0.0.1:6002")
 	diretorioInterface := cmp.Or(os.Getenv("MIRA_WEB_DIR"), "../web/dist")
-	roteador := api.NovoRoteador(bancoDeDados, clienteInventario, diretorioInterface)
+	roteador := api.NovoRoteador(bancoDeDados, clienteInventario, diretorioInterface, segredoJWT)
 
 	log.Printf("Mira em %s", enderecoHTTP)
 	return servidorhttp.Servir(contextoProcesso, enderecoHTTP, roteador)

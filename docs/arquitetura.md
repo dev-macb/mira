@@ -21,6 +21,13 @@ Recarregar volta ao login e restaura os dados de exemplo. A única preferência 
 - No Compose, `server/cmd/docker` consulta o daemon com o SDK Moby e entrega à API o inventário com `mira.project` preenchido, incluindo containers parados. O cliente usado pela API e o roteador que consulta o daemon ficam em `server/internal/docker/`. A consulta exige o token entre serviços.
 - O [roteiro de implantação](../deploy/README.md) reúne a configuração local da VPS para Compose, Nginx e Certbot. Os fluxos de autenticação, projetos e operações seguem o cronograma do [plano](../PLANO.md).
 
+## Autenticação da semana 2
+
+- `server/internal/store/administrador.go` cria a conta inicial com bcrypt apenas quando a tabela de usuários está vazia. O nome, o e-mail e a senha vêm do ambiente; após a primeira criação, mudar essas variáveis não altera a conta existente.
+- `server/api/autenticacao.go` implementa login, consulta da conta, renovação rotativa e saída. JWT HS256 de 15 minutos é entregue no cabeçalho `Authorization`; o refresh aleatório fica em cookie `HttpOnly`, `SameSite=Strict`, com validade de 30 dias. O SQLite guarda apenas seu hash.
+- O middleware confere o refresh persistido e a situação ativa da conta. A renovação revoga o refresh anterior e grava o substituto em uma transação. O login limita tentativas por endereço de origem. O servidor exige `MIRA_JWT_SECRET` com ao menos 32 bytes.
+- `web/src/shared/api/sessao.ts` mantém o JWT somente em memória, renova a sessão após recarga e renova após expiração do JWT. `web/src/app/entrada.tsx` entrega o formulário de login e a saída.
+
 ## MVP conectado previsto
 
 ```text

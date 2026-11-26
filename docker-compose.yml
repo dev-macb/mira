@@ -10,6 +10,10 @@ services:
       context: .
       target: http
     environment:
+      MIRA_JWT_SECRET: ${MIRA_JWT_SECRET:?Defina o segredo de assinatura JWT}
+      MIRA_ADMIN_NAME: ${MIRA_ADMIN_NAME:-Administrador}
+      MIRA_ADMIN_EMAIL: ${MIRA_ADMIN_EMAIL:?Defina o e-mail do administrador inicial}
+      MIRA_ADMIN_PASSWORD: ${MIRA_ADMIN_PASSWORD:?Defina a senha do administrador inicial}
       MIRA_DOCKER_URL: http://docker-inventory:8080
       MIRA_DOCKER_TOKEN: ${MIRA_DOCKER_TOKEN:?Defina o token privado do inventário}
     volumes:
